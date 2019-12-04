@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+
+<head>
+    <title>H5微应用开发教学</title>
+    <!-- 这个必须引入的啊，钉钉的前端js SDK, 使用框架的请自行参照开发文档 -->
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/2.7.13/dingtalk.open.js"></script>
+    <!-- 这个jquery 想不想引入自己决定，没什么影响 -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+</head>
+
+<body>
+<hr>
+<h1>H5微应用免登教学</h1>
+<p>当前页面的url:</p>
+<p id="url"></p>
+<br>
+<p>解析url,获取的corpID:</p>
+<p id="corpId"></p>
+<br>
+<p>SDK初始化获取的code:</p>
+<p id="code"></p>
+<br>
+<p>请求我们服务端,登录返回的结果:</p>
+<p id="result"></p>
+</body>
+<script type="text/javascript">
+    $(function () {
+        //钉钉sdk 初始化
+        // dd.ready参数为回调函数，在环境准备就绪时触发，jsapi的调用需要保证在该回调函数触发后调用，否则无效。
+        dd.ready(function () {
+            //获取当前网页的url
+            //http://ding-web.lnexin.cn/?corpid=ding46a9582af5b7541b35c2f4657eb6378f
+            var currentUrl = document.location.toString()
+            $("#url").append(currentUrl)
+
+            // 解析url中包含的corpId
+            var corpId = '??';
+            // var corpId = currentUrl.split("corpid=")[1];
+            $("#corpId").append(corpId)
+
+            //使用SDK 获取免登授权码
+            dd.runtime.permission.requestAuthCode({
+                corpId: corpId,
+                onSuccess: function (result) {
+                    var code = result.code;
+                    $("#code").append(code)
+                    //请求我们服务端的登陆地址
+                    $.get("http://10.4.94.250:9000/ding/login?code=" + code + "&corpId=" + corpId, function (response) {
+                        // 我们服务器返回的信息
+                        // 下面代码主要是将返回结果显示出来，可以根据自己的数据结构随便写
+                        for (item in response) {
+                            $("#result").append("<li>" + item + ":" + response[item] + "</li>")
+                        }
+                        if (response.user) {
+                            for (item in response.user) {
+                                $("#result").append("<li>\t[user 属性] " + item + " : " + response.user[item] + "</li>")
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    })
+
+</script>
+
+</html>
